@@ -8,6 +8,7 @@
         MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ["\\(","\\)"]] } });
     </script>
     <script type="text/javascript" src="js/MathJax.js?config=TeX-AMS_HTML">
+    <script src="js/StaggeredGridJS.js"
     </script>
     <meta http-equiv="X-UA-Compatible" CONTENT="IE=EmulateIE7" />
 </head>
@@ -321,7 +322,8 @@ body {
         P_x(i,j,k) =  P_x(i,j,k) - \kappa \frac{ \triangle t}{ \triangle h}  ( V_x(i,j,k) - V_x(i-1,j,k) )
         \)
     </p>
-
+    <div class="StaggeredGridJS" I="4" J="4" pml=0 w=500 h=500></div>
+    <p>図. スタッガード格子</p>
 </body>
 
 </html>
