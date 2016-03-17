@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>FiFDTD</title>
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <meta http-equiv="X-UA-Compatible" CONTENT="IE=EmulateIE7" />
+</head>
+
+<body>
+    <!-- ********************** 本文 ******************************** -->
+
+    <h1>
+		FDTDを用いた音響-振動連成解析
+	</h1>
+    <h2>
+		目次
+	</h2>
+    <li>1. 概要</li>
+    <li>2. 解析条件や実装方法</li>
+    <li>2.1 音響解析について</li>
+    <li>概要/支配方程式</li>
+    <li>2.2 音響の吸音条件</li>
+    <li>2.3 振動解析について</li>
+    <li>概要/支配方程式</li>
+    <li>2.4 音響-振動連成解析について</li>
+    <li>3. Pythonでの実装例</li>
+    <li>3.0 座標系</li>
+    <li>3.1 物理定数</li>
+    <li>3.2 諸定数の計算</li>
+    <li>3.3 配列確保</li>
+    <li>3.4 時間ループ</li>
+    <li>5. ParaViewでの結果の可視化方法</li>
+    <li>4. 解析結果</li>
+    <li>5. まとめ</li>
+
+    <h2>概要</h2>
+    <p>物体の衝突音を解析することを目標としたシミュレーションコードの実装例についてまとめる.</p>
+    <p>具体的な対象は，薄い物体にインパルス状の加振力が作用した際に生じる物体振動と，そこから放射される音響場の解析・課しかを試みる.</p>
+    <p>シミュレーションには「有限差分法」を用いる．これは音響および振動現象を記述する偏微分方程式を差分法で近似し計算する手法である．[1]</p>
+
+
+    <h2>差分法による偏微分方程式の解法</h2>
+    <p>参考:<a href="">パソコンによる数値解析</a></p>
+    <p>2変数の場合を考える.直交格子の場合,</p>
+    <p>
+        \( x = x_0 + i \triangle x \quad (i=1,2,3...) \tag{} \)
+    </p>
+    <p>
+        \( y = y_0 + j \triangle y \quad (j=1,2,3...) \tag{} \)
+    </p>
+    <p>であらわせる. ここで, \(\triangle x\), \(\triangle y\)は\(x\), \(y\)方向の刻み幅で格子間隔である. また\(x_0, y_0\)はある基準点の座標である.</p>
+    <p> 格子点\(P\)の座標\( (x,y) \)における関数\( u(x,y) \)の値を</p>
+    <p>
+        \( u(x,y) = u_p = u_{i,j} \tag{} \)
+    </p>
+    <p>と記することにする.</p>
+    <p>前進差分</p>
+    <h3>前進差分</h3>
+    <p>
+        \( (\frac{\partial u}{\partial x})_p = (\frac{\partial u}{ \partial x})_{i,j} = \frac{u_{i+1,j} - u_{i,j} }{ \triangle x } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial u}{\partial y})_p = (\frac{\partial u}{ \partial y})_{i,j} = \frac{u_{i,j+1} - u_{i,j} }{ \triangle y } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x^2})_p = (\frac{\partial^2 u}{ \partial x^2})_{i,j} = \frac{u_{i+2,j} -2u_{i+1,j} + u_{i,j} }{ \triangle x^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial y^2})_p = (\frac{\partial^2 u}{ \partial y^2})_{i,j} = \frac{u_{i,j+2} -2u_{i,j+1} + u_{i,j} }{ \triangle y^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x \partial y})_p = (\frac{\partial^2 u}{ \partial x \partial y })_{i,j} = \frac{u_{i+1,j+1}-u_{i,j+1}-u_{i+1,j}+u_{i,j} }{ \triangle x \triangle y } \tag{} \)
+    </p>
+    <h3>後退差分</h3>
+    <p>
+        \( (\frac{\partial u}{\partial x})_p = (\frac{\partial u}{ \partial x})_{i,j} = \frac{u_{i,j} - u_{i-1,j} }{ \triangle x } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial u}{\partial y})_p = (\frac{\partial u}{ \partial y})_{i,j} = \frac{u_{i,j} - u_{i,j-1} }{ \triangle y } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x^2})_p = (\frac{\partial^2 u}{ \partial x^2})_{i,j} = \frac{u_{i,j} -2u_{i-1,j} + u_{i-2,j} }{ \triangle x^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial y^2})_p = (\frac{\partial^2 u}{ \partial y^2})_{i,j} = \frac{u_{i,j} -2u_{i,j-1} + u_{i,j-2} }{ \triangle y^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x \partial y})_p = (\frac{\partial^2 u}{ \partial x \partial y })_{i,j} = \frac{u_{i,j}-u_{i,j-1}-u_{i-1,j}+u_{i-1,j-1} }{ \triangle x \triangle y } \tag{} \)
+    </p>
+    <h3>中心差分</h3>
+    <p>
+        \( (\frac{\partial u}{\partial x})_p = (\frac{\partial u}{ \partial x})_{i,j} = \frac{u_{i+1,j} - u_{i-1,j} }{ 2\triangle x } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial u}{\partial y})_p = (\frac{\partial u}{ \partial y})_{i,j} = \frac{u_{i,j+1} - u_{i,j-1} }{ 2\triangle y } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x^2})_p = (\frac{\partial^2 u}{ \partial x^2})_{i,j} = \frac{u_{i+1,j} -2u_{i,j} + u_{i-1,j} }{ \triangle x^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial y^2})_p = (\frac{\partial^2 u}{ \partial y^2})_{i,j} = \frac{u_{i,j+1} -2u_{i,j} + u_{i,j-1} }{ \triangle y^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x \partial y})_p = (\frac{\partial^2 u}{ \partial x \partial y })_{i,j} = \frac{u_{i+1,j+1}-u_{i+1,j-1}-u_{i-1,j+1}+u_{i-1,j-1} }{ \triangle x \triangle y } \tag{} \)
+    </p>
+
+    <h2>音響解析方法</h2>
+    <p>音響解析は式(1)に示すヘルムホルツ方程式の離散化を行い計算を行った．</p>
+
+    <pre>3次元音場中の音波伝搬に関する運動の式，連続の式は下記のように表される.</pre>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial x} + \rho \frac{ \partial u_x(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial y} + \rho \frac{ \partial u_y(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial z} + \rho \frac{ \partial u_z(x,y,z,t) }{\partial t} =0\tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial t} + \rho c^2 \{ \frac{ \partial u_x(x,y,z,t) }{\partial x} +\frac{ \partial u_y(x,y,z,t) }{\partial y} +\frac{ \partial u_z(x,y,z,t) }{\partial z}\}=0 \tag{} \)
+    </p>
+
+	<p>離散化には構造格子を採用しスタッガード格子[2]を用いた．</p>
+	<p>スタッガード格子は，圧力の計算点と，粒子速度の計算点を互い違いに配置することで，偏微分方程式の離散化を容易にしている．具体的には，圧力・速度共に空間微分に中央差分法を用いている．この時スタッガード格子だと互い違いの恩恵により実装が容易である．図1にスタッガード格子の模式図を示す．</p>
+    <div class="StaggeredGridJS" I="4" J="4" pml=0 w=300 h=300></div>
+
+
+    <h2>FDTD法による音響支配方程式の離散化</h2>
+    <p>空間微分を中心差分スキームで離散化</p>
+    <p>格子にはスタガーッド格子を用いているので，中心差分による離散化は以下のようになる．</p>
+    <p>
+        \( \frac{ p^n_{i+1,j,k} - p^n_{i,j,k} }{\triangle x} + \rho \frac{ u^{n+1}_{x}(i+1,j,k) - u^{n}_{x} (i+1,j,k) }{\triangle t} = 0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ p^n_{i,j+1,k} - p^n_{i,j,k} }{\triangle y} + \rho \frac{ u^{n+1}_{y} (i,j+1,k) - u^{n}_{y} (i, j+1,k) }{\triangle t} = 0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ p^n_{i,j,k+1} - p^n_{i,j,k} }{\triangle z} + \rho \frac{ u^{n+1}_{z} (i,j,k+1) - u^{n}_{z} (i,j,k+1) }{\triangle t} = 0 \tag{} \)
+    </p>
+    <p>以上から，3次元での運動方程式について</p>
+    <p>
+        \( u^{n+1}_{x} (i+1,j,k) = u^{n}_{x}(i+1,j,k) - \frac{\triangle t}{\triangle x \rho}[p^n_{i+1, j, k} - p^n_{i,j,k}] \tag{} \)
+    </p>
+    <p>
+        \( u^{n+1}_{y} (i,j+1,k) = u^{n}_{y}(i,j+1,k) - \frac{\triangle t}{\triangle x \rho}[p^n_{i, j+1, k} - p^n_{i,j,k}] \tag{} \)
+    </p>
+    <p>
+        \( u^{n+1}_{z} (i,j,k+1) = u^{n}_{z}(i,j,k+1) - \frac{\triangle t}{\triangle x \rho}[p^n_{i, j, k+1} - p^n_{i,j,k}] \tag{} \)
+    </p>
+    <p>連続の式も同様に</p>
+    <p>
+        \( p^{n+1}_{i,j,k} = p^{n}_{i,j,k} - [ \frac{\triangle t \kappa}{\triangle x} [u^{n+1}_x(i+1,j,k) - u^{n+1}_x(i,j,k)] + \frac{\triangle t \kappa}{\triangle y} [u^{n+1}_y(i,j+1,k) - u^{n+1}_y(i,j,k)] + \frac{\triangle t \kappa}{\triangle z} [u^{n+1}_z(i,j+1,k) - u^{n+1}_z(i,j,k)] ] \tag{} \)
+    </p>
+    <p>以上により，適当な初期値を持ち更新することで，\(\triangle t\)後の音響量を計算することが可能である．</p>
+    
+
+    <h2>PML吸音境界条件</h2>
+    <p>
+        \( N_{pml} \):PML層数[-]
+    </p>
+    <p>\(m_{pml} \):PML減衰係数テーパー乗数 [-]</p>
+    <p>\(
+    E_{max}
+    \):# PML減衰係数最大値</p>
+    <p>PML用更新係数</p>
+    <p>領域AIRと領域PMLとの接合境界面(以下Interface)における連続性を確保しつつ，境界層内で音波を有効に減衰させるために減衰定数\(R_x, R_y, R_z\)をInterfaceからの距離の関数として，たとえば次のように与える(以下ConventionalPML).</p>
+    <p>
+        \(
+        R(i \triangle d) = R_{max} ( \frac{i \triangle d}{N \triangle d})^{m}
+        \)
+    </p>
+    <p>ただし, \(i\triangle d\):interfaceからの距離, \(N\triangle d\):PML境界層厚さ, \(R_{max}\):Rの最大値, \(m\):\(R\)の分布性状を決定する定数.</p>
+    <p>参考文献での実装では以下のようになる</p>
+    <p>
+        \(
+        E_x(l) = E_{max} (\frac{N_{pml} - l +1}{N_{pml}} )^{m_{pml}}
+        \)
+    </p>
+    <p>
+        \(
+        PML_a(l) = \frac{1.0 - E_x(l)}{1.0 + E_x(l)}
+        \)
+    </p>
+    <p>
+        \(
+        PML_b(l) = \frac{c_0}{Z_0} \frac{\triangle t}{\triangle h} \frac{1}{1.0 + E_x(l)}
+        \)
+    </p>
+    <p>
+        \(
+        PML_c(l) = \kappa \frac{ \triangle t}{ \triangle h} \frac{1}{1.0 + E_x(l)}
+        \)
+    </p>
+
+    <p>PML境界内部での圧力・速度の更新</p>
+    <p>
+        \(
+        V^{n+1}_x(i,j,k) = PML_a(l) V^n_x(i,j,k) - PML_b(l) ( P(i+1,j,k) - P(i,j,k))
+        \)
+    </p>
+    <p>
+        \(
+        P_x(i,j,k) = PML_a(l) P_x(i,j,k) - PML_c(l) ( V_x(i,j,k) - V_x(i-1,j,k))
+        \)
+    </p>
+    <p>ここで\(l\):境界(interface)からの距離インデックスをあらわす.</p>
+    <p>PML境界層ではないAIR層内では以下の式である．</p>
+    <p>
+        \(
+        V^{n+1}_x(i,j,k) = V^n_x(i,j,k) - \frac{c_0}{Z_0} \frac{\triangle t}{\triangle h} ( P(i+1,j,k) - P(i,j,k))
+        \)
+    </p>
+    <p>
+        \(
+        P_x(i,j,k) =  P_x(i,j,k) - \kappa \frac{ \triangle t}{ \triangle h}  ( V_x(i,j,k) - V_x(i-1,j,k) )
+        \)
+    </p>
+
+
+
+    <h2>薄い弾性平板の曲げ振動</h2>
+    <p>参考:<a href="">機械工学のための振動・音響学</a></p>
+    <p>薄い等方性平板の曲げ振動を表す運動方程式を導く．次の仮定をおく，</p>
+    <ul>
+        <li>板厚\(h\)は,平板の他の寸法に比べて十分小さい.</li>
+        <li>変形前の平面断面は，変形後も平面を保つ</li>
+        <li>板の中立面は変形しない</li>
+        <li>外力は板の表面に垂直に作用する</li>
+        <li>せん断変形と回転慣性の影響は無視する</li>
+    </ul>
+    <p>(省略)</p>
+    <p>
+        \( D( \frac{\partial^4 w}{\partial x^4} + 2 \frac{\partial^4 w}{\partial x^2 \partial x^2} + \frac{\partial^4 w}{\partial y^4} \tag{} ) + \rho h \frac{\partial^2 w}{\partial t^2} = q \)
+    </p>
+    <p>ラプラスの微分演算子\(\nabla^2\)(ラプラシアン)を用いて,</p>
+    <p>
+        \( D \nabla^4 w + \rho h \frac{\partial^2 w}{\partial t^2} = 0 \tag{} \)
+    </p>
+	<h2>FDTD法による振動の支配方程式の離散化</h2>
+    <p><a href="http://multi-science.atypon.com/doi/abs/10.1260/135101009789877004">Finite-Difference Time-Domain Analysis of Sound Insulation Performance of Wall Systems</a></p>
+    <p>Acoustical analysis was performed by three-dimensional FDTD analysis using a high-order scheme with eight reference points in order to avoid phase error.</p>
+    <p>
+        \( D \nabla^4 w + \xi D \frac{\partial}{\partial t} \nabla^4 w + \mu \frac{\partial^2 w}{\partial t^2} = q \tag{} \)
+    </p>
+    <p>
+        \( D = E h^3 / 12 (1- \gamma ^2) \tag{} \)
+    </p>
+    <p>where, \(D\) is the flexural rigidity; \(E\), the Young's moduleus; \(h\), the thickness of the plate; \(\gamma\), the Poisson's ratio; \(\xi\), the coefficient related to the internal damping; \(w\), the transverse displacement; \(\mu\), the mass density per unit area of the plate; and \(q\), the external force transverse to the plate.</p>
+    <p>高次スキームにて離散化を行うと以下のようになる.</p>
+    <p>
+        \( w^{n+1}_{j,k} = \frac{q^n_{j,k} }{\mu} \triangle t^2 + 2 w^n_{j,k} - w^{n-1}_{j,k} \)
+    </p>
+    <p>
+        \( - \frac{D}{\mu}\triangle t^2 ( \frac{ w^{n}_{j-2,k} -4w^{n}_{j-1,k} +6w^{n}_{j,k}-4w^{n}_{j+1,k}+w^{n}_{j+2,k} }{ \triangle y^4 } + \frac{ w^{n}_{j,k-2} -4w^{n}_{j,k-1} +6w^{n}_{j,k}-4w^{n}_{j,k+1}+w^{n}_{j,k+2} }{ \triangle z^4 } +2 \frac{ (w^{n}_{j+1,k+1} -2w^{n}_{j+1,k}+w^{n}_{j+1,k-1}) -2 (w^{n}_{j,k+1} -2 w^{n}_{j,k} + w^{n}_{j,k-1}) +(w^{n}_{j-1,k+1}-2w^{n}_{j-1,k} + w^{n}_{j-1,k-1} )}{\triangle y^2 \triangle z^2} ) \)
+    </p>
+    <p>
+        \( - \xi \frac{D}{\mu}\triangle t [ ( \frac{ w^{n}_{j-2,k} -4w^{n}_{j-1,k} +6w^{n}_{j,k}-4w^{n}_{j+1,k}+w^{n}_{j+2,k} }{ \triangle y^4 } + \frac{ w^{n}_{j,k-2} -4w^{n}_{j,k-1} +6w^{n}_{j,k}-4w^{n}_{j,k+1}+w^{n}_{j,k+2} }{ \triangle z^4 } +2 \frac{ (w^{n}_{j+1,k+1} -2w^{n}_{j+1,k}+w^{n}_{j+1,k-1}) -2 (w^{n}_{j,k+1} -2 w^{n}_{j,k} + w^{n}_{j,k-1}) +(w^{n}_{j-1,k+1}-2w^{n}_{j-1,k} + w^{n}_{j-1,k-1} )}{\triangle y^2 \triangle z^2} ) \)
+    </p>
+    <p>
+        \( - ( \frac{ w^{n-1}_{j-2,k} -4w^{n-1}_{j-1,k} +6w^{n-1}_{j,k}-4w^{n-1}_{j+1,k}+w^{n-1}_{j+2,k} }{ \triangle y^4 } + \frac{ w^{n-1}_{j,k-2} -4w^{n-1}_{j,k-1} +6w^{n-1}_{j,k}-4w^{n-1}_{j,k+1}+w^{n-1}_{j,k+2} }{ \triangle z^4 } +2 \frac{ (w^{n-1}_{j+1,k+1} -2w^{n-1}_{j+1,k}+w^{n-1}_{j+1,k-1}) -2 (w^{n-1}_{j,k+1} -2 w^{n-1}_{j,k} + w^{n-1}_{j,k-1}) +(w^{n-1}_{j-1,k+1}-2w^{n-1}_{j-1,k} + w^{n-1}_{j-1,k-1} )}{\triangle y^2 \triangle z^2} ) ] \)
+    </p>
+    <p>In this equation, the external force \(q^n_{j,k}\)was expressed as the difference in the sound pressure on both sides of the plate, \(p^n_{i,j,k}\) and \(p^n_{i-1,j,k}\), as shown in Fig. 1(b)</p>
+    <p>
+        \( q^n_{j,k} = (p^n_{i,j,k} - p^n_{i-1,j,k}) \triangle y \triangle z \tag{} \)
+    </p>
+    <p>Thereafter, the vibration velocity of the plate obtained using the following equation(4) was assigned as the particle velocity of the sound field in the x direction adjacent to the plate, \(u^{n+1}_{i,j,k}\).</p>
+    <p>
+        \( u^{n+1}_{i,j,k} = \frac{w^{n+1}_{j,k} - w^n_{j,k}} {\triangle t} \tag{} \)
+    </p>
+
+
+	<h2>FDTD法による音響振動連成解析</h2>
+    <p>参考:<a href="https://www.jstage.jst.go.jp/article/seisankenkyu/61/4/61_4_793/_pdf">FDTD 法による音響振動連成解析を用いた遮音性能のシミュレーション</a></p>
+    <p>音響および振動の支配方程式をあらためて書くと</p>
+    <h3>音響解析</h3>
+    <p>3次元音場中の音波伝搬に関する運動の式，連続の式は下記のように表される.</p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial x} + \rho \frac{ \partial u_x(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial y} + \rho \frac{ \partial u_y(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial z} + \rho \frac{ \partial u_z(x,y,z,t) }{\partial t} =0\tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial t} + \rho c^2 \{ \frac{ \partial u_x(x,y,z,t) }{\partial x} +\frac{ \partial u_y(x,y,z,t) }{\partial y} +\frac{ \partial u_z(x,y,z,t) }{\partial z}\}=0 \tag{} \)
+    </p>
+    <h3>曲げ振動解析</h3>
+    <p>曲げ振動解析には，Kirchhoff理論に基づいた2次元薄板の曲げ振動方程式に損失項を加えた下記の式を用いる.</p>
+    <p>
+        \( D \nabla^4 w + \xi D \frac{\partial}{\partial t} \nabla^4 w + m \mu \frac{\partial w}{\partial t} + m \frac{\partial^2 w}{\partial t^2} = p \tag{} \)
+    </p>
+    <p>
+        \( D = E h^3 / 12 (1- \gamma ^2) \tag{} \)
+    </p>
+    <p>ここで\(w\)は板の変位を表す. また，\(E\)はヤング率, \(h\)は板の厚み, \(\gamma\)はポアソン比を表す. </p>
+    <p>式()において, 第2項は内部粘性減衰項, 第3項は外部減衰項, \(\xi\)と\(\mu\)はそれぞれ内部粘性減衰および外部減衰に関する係数である.</p>
+    <p>\(\xi\), \(\mu\)といたの損失係数\(\eta\)の関係は，周波数領域で理論的に下式で表現される.</p>
+    <p>
+        \( \eta = 2 \pi f \xi + \frac{\mu}{2 \pi f} \tag{} \)
+    </p>
+    <p>上式()は周波数\(f\)の関数となることから, \(\eta\)は周波数特性を有する.</p>
+    <h3>音響振動連成解析</h3>
+    <p>曲げ振動場および音場を連成解析するために，板の両側における音圧\(p^2 (i,j,k)\), \( p^2 (i-1,j,k)\)の差分を, 板に対する外力\(q^n_{j,k}\)として与えた(下式). </p>
+    <p>ここで\(n\)は時間ステップ, \(i,j,k\)は\(x,y,z\)座標を表す. </p>
+    <p>
+        \( q^n_{j,k} = ( p^2(i,j,k) - p^2(i-1, j,k)) \triangle x \triangle y \tag{} \)
+    </p>
+    <p>
+        曲げ振動解析の結果求められた板の変位(\(w\))の時間微分からいたの振動速度を求め, 板の両側の音場における粒子速度\(u^{n+1}_x (i,j,k)\), \(u^{n+1}_x (i-1,j,k)\)に代入した
+    </p>
+    <p>
+        \( u^{n+1}_{x} (i,j,k) = \frac{ w^{n+1}_{j,k} - w^{n}_{j,k} }{ \triangle t } \tag{} \)
+    </p>
+    <p>
+        \( u^{n+1}_{x} (i-1,j,k) = \frac{ w^{n+1}_{j,k} - w^{n}_{j,k} }{ \triangle t } \tag{} \)
+    </p>
+    <p>
+        (ヒント) 空気中の音波と固体中の曲げ波では伝搬速度が異なるため，差分方計算における安定条件に差がでる. そのため，曲げ振動の計算において, 空気中音場に比べて時間離散化幅を小さくすることにより安定条件を満足させた.
+    </p>
+
+
+
+
+
+
+
+
+
+
+    <!-- ********************** 以下JavaScript ******************************** -->
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery-2.2.2.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ["\\(","\\)"]] } });
+    </script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML">
+    </script>
+    <script src="js/StaggeredGridJS.js"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+    </script>
+</body>
+
+</html>

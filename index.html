@@ -1,0 +1,525 @@
+<!-- ver 2.1 : 2016/03/16 -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+
+    <!-- Jquery -->
+    <script   src="https://code.jquery.com/jquery-2.2.1.min.js"   integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="   crossorigin="anonymous"></script>
+    <!-- StaggeredGridJS -->
+    <script src="js/StaggeredGridJS.js"></script>
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ["\\(","\\)"]] } });
+    </script>
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML">
+    </script>
+    <meta http-equiv="X-UA-Compatible" CONTENT="IE=EmulateIE7" />
+    <!-- /MathJax -->
+</head>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<style type="text/css">
+body {
+    width: 720px;
+}
+</style>
+
+<body>
+
+    <h2>薄い弾性平板の曲げ振動</h2>
+    <p>参考:<a href="">機械工学のための振動・音響学</a></p>
+    <p>薄い等方性平板の曲げ振動を表す運動方程式を導く．次の仮定をおく，</p>
+    <ul>
+        <li>板厚\(h\)は,平板の他の寸法に比べて十分小さい.</li>
+        <li>変形前の平面断面は，変形後も平面を保つ</li>
+        <li>板の中立面は変形しない</li>
+        <li>外力は板の表面に垂直に作用する</li>
+        <li>せん断変形と回転慣性の影響は無視する</li>
+    </ul>
+    <p>(省略)</p>
+    <p>
+        \( D( \frac{\partial^4 w}{\partial x^4} + 2 \frac{\partial^4 w}{\partial x^2 \partial x^2} + \frac{\partial^4 w}{\partial y^4} \tag{} ) + \rho h \frac{\partial^2 w}{\partial t^2} = q \)
+    </p>
+    <p>ラプラスの微分演算子\(\nabla^2\)(ラプラシアン)を用いて,</p>
+    <p>
+        \( D \nabla^4 w + \rho h \frac{\partial^2 w}{\partial t^2} = 0 \tag{} \)
+    </p>
+
+    <h2>差分法による偏微分方程式の解法</h2>
+    <p>参考:<a href="">パソコンによる数値解析</a></p>
+    <p>2変数の場合を考える.直交格子の場合,</p>
+    <p>
+        \( x = x_0 + i \triangle x \quad (i=1,2,3...) \tag{} \)
+    </p>
+    <p>
+        \( y = y_0 + j \triangle y \quad (j=1,2,3...) \tag{} \)
+    </p>
+    <p>であらわせる. ここで, \(\triangle x\), \(\triangle y\)は\(x\), \(y\)方向の刻み幅で格子間隔である. また\(x_0, y_0\)はある基準点の座標である.</p>
+    <p> 格子点\(P\)の座標\( (x,y) \)における関数\( u(x,y) \)の値を</p>
+    <p>
+        \( u(x,y) = u_p = u_{i,j} \tag{} \)
+    </p>
+    <p>と記することにする.</p>
+    <p>前進差分</p>
+    <h3>前進差分</h3>
+    <p>
+        \( (\frac{\partial u}{\partial x})_p = (\frac{\partial u}{ \partial x})_{i,j} = \frac{u_{i+1,j} - u_{i,j} }{ \triangle x } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial u}{\partial y})_p = (\frac{\partial u}{ \partial y})_{i,j} = \frac{u_{i,j+1} - u_{i,j} }{ \triangle y } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x^2})_p = (\frac{\partial^2 u}{ \partial x^2})_{i,j} = \frac{u_{i+2,j} -2u_{i+1,j} + u_{i,j} }{ \triangle x^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial y^2})_p = (\frac{\partial^2 u}{ \partial y^2})_{i,j} = \frac{u_{i,j+2} -2u_{i,j+1} + u_{i,j} }{ \triangle y^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x \partial y})_p = (\frac{\partial^2 u}{ \partial x \partial y })_{i,j} = \frac{u_{i+1,j+1}-u_{i,j+1}-u_{i+1,j}+u_{i,j} }{ \triangle x \triangle y } \tag{} \)
+    </p>
+    <h3>後退差分</h3>
+    <p>
+        \( (\frac{\partial u}{\partial x})_p = (\frac{\partial u}{ \partial x})_{i,j} = \frac{u_{i,j} - u_{i-1,j} }{ \triangle x } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial u}{\partial y})_p = (\frac{\partial u}{ \partial y})_{i,j} = \frac{u_{i,j} - u_{i,j-1} }{ \triangle y } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x^2})_p = (\frac{\partial^2 u}{ \partial x^2})_{i,j} = \frac{u_{i,j} -2u_{i-1,j} + u_{i-2,j} }{ \triangle x^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial y^2})_p = (\frac{\partial^2 u}{ \partial y^2})_{i,j} = \frac{u_{i,j} -2u_{i,j-1} + u_{i,j-2} }{ \triangle y^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x \partial y})_p = (\frac{\partial^2 u}{ \partial x \partial y })_{i,j} = \frac{u_{i,j}-u_{i,j-1}-u_{i-1,j}+u_{i-1,j-1} }{ \triangle x \triangle y } \tag{} \)
+    </p>
+    <h3>中心差分</h3>
+    <p>
+        \( (\frac{\partial u}{\partial x})_p = (\frac{\partial u}{ \partial x})_{i,j} = \frac{u_{i+1,j} - u_{i-1,j} }{ 2\triangle x } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial u}{\partial y})_p = (\frac{\partial u}{ \partial y})_{i,j} = \frac{u_{i,j+1} - u_{i,j-1} }{ 2\triangle y } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x^2})_p = (\frac{\partial^2 u}{ \partial x^2})_{i,j} = \frac{u_{i+1,j} -2u_{i,j} + u_{i-1,j} }{ \triangle x^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial y^2})_p = (\frac{\partial^2 u}{ \partial y^2})_{i,j} = \frac{u_{i,j+1} -2u_{i,j} + u_{i,j-1} }{ \triangle y^2 } \tag{} \)
+    </p>
+    <p>
+        \( (\frac{\partial^2 u}{\partial x \partial y})_p = (\frac{\partial^2 u}{ \partial x \partial y })_{i,j} = \frac{u_{i+1,j+1}-u_{i+1,j-1}-u_{i-1,j+1}+u_{i-1,j-1} }{ \triangle x \triangle y } \tag{} \)
+    </p>
+
+    <h2>FDTD法による音響解析理論</h2>
+    <pre>3次元音場中の音波伝搬に関する運動の式，連続の式は下記のように表される.</pre>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial x} + \rho \frac{ \partial u_x(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial y} + \rho \frac{ \partial u_y(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial z} + \rho \frac{ \partial u_z(x,y,z,t) }{\partial t} =0\tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial t} + \rho c^2 \{ \frac{ \partial u_x(x,y,z,t) }{\partial x} +\frac{ \partial u_y(x,y,z,t) }{\partial y} +\frac{ \partial u_z(x,y,z,t) }{\partial z}\}=0 \tag{} \)
+    </p>
+    <p>空間微分を中心差分スキームで離散化</p>
+    <p>格子にはスタガーッド格子を用いているので，中心差分による離散化は以下のようになる．</p>
+    <p>
+        \( \frac{ p^n_{i+1,j,k} - p^n_{i,j,k} }{\triangle x} + \rho \frac{ u^{n+1}_{x}(i+1,j,k) - u^{n}_{x} (i+1,j,k) }{\triangle t} = 0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ p^n_{i,j+1,k} - p^n_{i,j,k} }{\triangle y} + \rho \frac{ u^{n+1}_{y} (i,j+1,k) - u^{n}_{y} (i, j+1,k) }{\triangle t} = 0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ p^n_{i,j,k+1} - p^n_{i,j,k} }{\triangle z} + \rho \frac{ u^{n+1}_{z} (i,j,k+1) - u^{n}_{z} (i,j,k+1) }{\triangle t} = 0 \tag{} \)
+    </p>
+    <p>以上から，3次元での運動方程式について</p>
+    <p>
+        \( u^{n+1}_{x} (i+1,j,k) = u^{n}_{x}(i+1,j,k) - \frac{\triangle t}{\triangle x \rho}[p^n_{i+1, j, k} - p^n_{i,j,k}] \tag{} \)
+    </p>
+    <p>
+        \( u^{n+1}_{y} (i,j+1,k) = u^{n}_{y}(i,j+1,k) - \frac{\triangle t}{\triangle x \rho}[p^n_{i, j+1, k} - p^n_{i,j,k}] \tag{} \)
+    </p>
+    <p>
+        \( u^{n+1}_{z} (i,j,k+1) = u^{n}_{z}(i,j,k+1) - \frac{\triangle t}{\triangle x \rho}[p^n_{i, j, k+1} - p^n_{i,j,k}] \tag{} \)
+    </p>
+    <p>連続の式も同様に</p>
+    <p>
+        \( p^{n+1}_{i,j,k} = p^{n}_{i,j,k} - [ \frac{\triangle t \kappa}{\triangle x} [u^{n+1}_x(i+1,j,k) - u^{n+1}_x(i,j,k)] + \frac{\triangle t \kappa}{\triangle y} [u^{n+1}_y(i,j+1,k) - u^{n+1}_y(i,j,k)] + \frac{\triangle t \kappa}{\triangle z} [u^{n+1}_z(i,j+1,k) - u^{n+1}_z(i,j,k)] ] \tag{} \)
+    </p>
+    <p>以上により，適当な初期値を持ち更新することで，\(\triangle t\)後の音響量を計算することが可能である．</p>
+    
+    <h2>FDTD法による振動解析理論</h2>
+    <p><a href="http://multi-science.atypon.com/doi/abs/10.1260/135101009789877004">Finite-Difference Time-Domain Analysis of Sound Insulation Performance of Wall Systems</a></p>
+    <p>Acoustical analysis was performed by three-dimensional FDTD analysis using a high-order scheme with eight reference points in order to avoid phase error.</p>
+    <p>
+        \( D \nabla^4 w + \xi D \frac{\partial}{\partial t} \nabla^4 w + \mu \frac{\partial^2 w}{\partial t^2} = q \tag{} \)
+    </p>
+    <p>
+        \( D = E h^3 / 12 (1- \gamma ^2) \tag{} \)
+    </p>
+    <p>where, \(D\) is the flexural rigidity; \(E\), the Young's moduleus; \(h\), the thickness of the plate; \(\gamma\), the Poisson's ratio; \(\xi\), the coefficient related to the internal damping; \(w\), the transverse displacement; \(\mu\), the mass density per unit area of the plate; and \(q\), the external force transverse to the plate.</p>
+    <p>高次スキームにて離散化を行うと以下のようになる.</p>
+    <p>
+        \( w^{n+1}_{j,k} = \frac{q^n_{j,k} }{\mu} \triangle t^2 + 2 w^n_{j,k} - w^{n-1}_{j,k} \)
+    </p>
+    <p>
+        \( - \frac{D}{\mu}\triangle t^2 ( \frac{ w^{n}_{j-2,k} -4w^{n}_{j-1,k} +6w^{n}_{j,k}-4w^{n}_{j+1,k}+w^{n}_{j+2,k} }{ \triangle y^4 } + \frac{ w^{n}_{j,k-2} -4w^{n}_{j,k-1} +6w^{n}_{j,k}-4w^{n}_{j,k+1}+w^{n}_{j,k+2} }{ \triangle z^4 } +2 \frac{ (w^{n}_{j+1,k+1} -2w^{n}_{j+1,k}+w^{n}_{j+1,k-1}) -2 (w^{n}_{j,k+1} -2 w^{n}_{j,k} + w^{n}_{j,k-1}) +(w^{n}_{j-1,k+1}-2w^{n}_{j-1,k} + w^{n}_{j-1,k-1} )}{\triangle y^2 \triangle z^2} ) \)
+    </p>
+    <p>
+        \( - \xi \frac{D}{\mu}\triangle t [ ( \frac{ w^{n}_{j-2,k} -4w^{n}_{j-1,k} +6w^{n}_{j,k}-4w^{n}_{j+1,k}+w^{n}_{j+2,k} }{ \triangle y^4 } + \frac{ w^{n}_{j,k-2} -4w^{n}_{j,k-1} +6w^{n}_{j,k}-4w^{n}_{j,k+1}+w^{n}_{j,k+2} }{ \triangle z^4 } +2 \frac{ (w^{n}_{j+1,k+1} -2w^{n}_{j+1,k}+w^{n}_{j+1,k-1}) -2 (w^{n}_{j,k+1} -2 w^{n}_{j,k} + w^{n}_{j,k-1}) +(w^{n}_{j-1,k+1}-2w^{n}_{j-1,k} + w^{n}_{j-1,k-1} )}{\triangle y^2 \triangle z^2} ) \)
+    </p>
+    <p>
+        \( - ( \frac{ w^{n-1}_{j-2,k} -4w^{n-1}_{j-1,k} +6w^{n-1}_{j,k}-4w^{n-1}_{j+1,k}+w^{n-1}_{j+2,k} }{ \triangle y^4 } + \frac{ w^{n-1}_{j,k-2} -4w^{n-1}_{j,k-1} +6w^{n-1}_{j,k}-4w^{n-1}_{j,k+1}+w^{n-1}_{j,k+2} }{ \triangle z^4 } +2 \frac{ (w^{n-1}_{j+1,k+1} -2w^{n-1}_{j+1,k}+w^{n-1}_{j+1,k-1}) -2 (w^{n-1}_{j,k+1} -2 w^{n-1}_{j,k} + w^{n-1}_{j,k-1}) +(w^{n-1}_{j-1,k+1}-2w^{n-1}_{j-1,k} + w^{n-1}_{j-1,k-1} )}{\triangle y^2 \triangle z^2} ) ] \)
+    </p>
+    <p>In this equation, the external force \(q^n_{j,k}\)was expressed as the difference in the sound pressure on both sides of the plate, \(p^n_{i,j,k}\) and \(p^n_{i-1,j,k}\), as shown in Fig. 1(b)</p>
+    <p>
+        \( q^n_{j,k} = (p^n_{i,j,k} - p^n_{i-1,j,k}) \triangle y \triangle z \tag{} \)
+    </p>
+    <p>Thereafter, the vibration velocity of the plate obtained using the following equation(4) was assigned as the particle velocity of the sound field in the x direction adjacent to the plate, \(u^{n+1}_{i,j,k}\).</p>
+    <p>
+        \( u^{n+1}_{i,j,k} = \frac{w^{n+1}_{j,k} - w^n_{j,k}} {\triangle t} \tag{} \)
+    </p>
+    
+    <h2>境界吸音条件</h2>
+    <h3>PML (Perfect Matched layer</h3>
+    <p>参考：<a href="http://www.acoust.iis.u-tokyo.ac.jp/publication/2005/asj_a/asj0509_sakamoto.pdf">音波の進行方向に適応したPML無反射境界*</a></p>
+    <p>参考：<a href="https://en.wikipedia.org/wiki/Perfectly_matched_layer">Wikipedia:Perfectly matched layer</a></p>
+    <h2>FDTD法による音響構造連成解析</h2>
+    <p>参考:<a href="https://www.jstage.jst.go.jp/article/seisankenkyu/61/4/61_4_793/_pdf">FDTD 法による音響振動連成解析を用いた遮音性能のシミュレーション</a></p>
+    <h3>音響解析</h3>
+    <pre>3次元音場中の音波伝搬に関する運動の式，連続の式は下記のように表される.</pre>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial x} + \rho \frac{ \partial u_x(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial y} + \rho \frac{ \partial u_y(x,y,z,t) }{\partial t} =0 \tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial z} + \rho \frac{ \partial u_z(x,y,z,t) }{\partial t} =0\tag{} \)
+    </p>
+    <p>
+        \( \frac{ \partial P(x,y,z,t) }{\partial t} + \rho c^2 \{ \frac{ \partial u_x(x,y,z,t) }{\partial x} +\frac{ \partial u_y(x,y,z,t) }{\partial y} +\frac{ \partial u_z(x,y,z,t) }{\partial z}\}=0 \tag{} \)
+    </p>
+    <h3>曲げ振動解析</h3>
+    <pre>曲げ振動解析には，Kirchhoff理論に基づいた2次元薄板の曲げ振動方程式に損失項を加えた下記の式を用いる.</pre>
+    <p>
+        \( D \nabla^4 w + \xi D \frac{\partial}{\partial t} \nabla^4 w + m \mu \frac{\partial w}{\partial t} + m \frac{\partial^2 w}{\partial t^2} = p \tag{} \)
+    </p>
+    <p>
+        \( D = E h^3 / 12 (1- \gamma ^2) \tag{} \)
+    </p>
+    <p>ここで\(w\)は板の変位を表す. また，\(E\)はヤング率, \(h\)は板の厚み, \(\gamma\)はポアソン比を表す. </p>
+    <p>式()において, 第2項は内部粘性減衰項, 第3項は外部減衰項, \(\xi\)と\(\mu\)はそれぞれ内部粘性減衰および外部減衰に関する係数である.</p>
+    <p>\(\xi\), \(\mu\)といたの損失係数\(\eta\)の関係は，周波数領域で理論的に下式で表現される.</p>
+    <p>
+        \( \eta = 2 \pi f \xi + \frac{\mu}{2 \pi f} \tag{} \)
+    </p>
+    <p>上式()は周波数\(f\)の関数となることから, \(\eta\)は周波数特性を有する.</p>
+    <h3>音響振動連成解析</h3>
+    <p>曲げ振動場および音場を連成解析するために，板の両側における音圧\(p^2 (i,j,k)\), \( p^2 (i-1,j,k)\)の差分を, 板に対する外力\(q^n_{j,k}\)として与えた(下式). </p>
+    <p>ここで\(n\)は時間ステップ, \(i,j,k\)は\(x,y,z\)座標を表す. </p>
+    <p>
+        \( q^n_{j,k} = ( p^2(i,j,k) - p^2(i-1, j,k)) \triangle x \triangle y \tag{} \)
+    </p>
+    <p>
+        曲げ振動解析の結果求められた板の変位(\(w\))の時間微分からいたの振動速度を求め, 板の両側の音場における粒子速度\(u^{n+1}_x (i,j,k)\), \(u^{n+1}_x (i-1,j,k)\)に代入した
+    </p>
+    <p>
+        \( u^{n+1}_{x} (i,j,k) = \frac{ w^{n+1}_{j,k} - w^{n}_{j,k} }{ \triangle t } \tag{} \)
+    </p>
+    <p>
+        \( u^{n+1}_{x} (i-1,j,k) = \frac{ w^{n+1}_{j,k} - w^{n}_{j,k} }{ \triangle t } \tag{} \)
+    </p>
+    <p>
+        (ヒント) 空気中の音波と固体中の曲げ波では伝搬速度が異なるため，差分方計算における安定条件に差がでる. そのため，曲げ振動の計算において, 空気中音場に比べて時間離散化幅を小さくすることにより安定条件を満足させた.
+    </p>
+    <h2>FDTD関連研究</h2>
+    <p><a href="http://www.kurims.kyoto-u.ac.jp/~kyodo/kokyuroku/contents/pdf/1701-10.pdf">音響問題における差分法を用いたインパルス応答解析予測手法の検討</a></p>
+    <p><a href="http://www.ed.u-tokai.ac.jp/morisita/auth/dfiles/2010_FDTDnote.pdf">FDTD法の生い立ち</a></p>
+    <h2>ParaView</h2>
+    <p><a href="http://www.geocities.jp/penguinitis2002/">PENGUINITIS</a></p>
+    <h1>実装</h1>
+    <h2>FDTDで視る音の世界</h2>
+    <p><a href="">三次元音響FDTDサンプル for C (by Masahiro TOYODA)</a></p>
+    <h3>空気の音速[m/s]</h3>
+    <p>
+        \( c_0 = 343.5\)
+    </p>
+    <h3>空気の密度\([kg/m^2]\)</h3>
+    <p>\( \rho_0 = 1.205 \) </p>
+    <h3>体積弾性率</h3>
+    <p>
+        \( \kappa_0 = \rho_0 c_0^2 \)
+    </p>
+    <h3>特性インピーダンス</h3>
+    <p>
+        \( Z_0 = \rho_0 c_0 \)
+    </p>
+    <h3>表面インピーダンス</h3>
+    <p>
+        \(\alpha\):直方体表面吸音率
+    </p>
+    <p>
+        \( Z_n = \rho_0 c_0 \frac{1.0 + \sqrt{1.0 - \alpha} }{1.0 - \sqrt{1.0-\alpha} } \)
+    </p>
+    <h3>Courant数</h3>
+    <p>\( clf = c_0 \frac{\triangle t}{\triangle h} \)</p>
+    
+    <h3>PML</h3>
+    <p>
+        \( N_{pml} \):PML層数[-]
+    </p>
+    <p>\(m_{pml} \):PML減衰係数テーパー乗数 [-]</p>
+    <p>\(
+    E_{max}
+    \):# PML減衰係数最大値</p>
+    <p>PML用更新係数</p>
+    <p>領域AIRと領域PMLとの接合境界面(以下Interface)における連続性を確保しつつ，境界層内で音波を有効に減衰させるために減衰定数\(R_x, R_y, R_z\)をInterfaceからの距離の関数として，たとえば次のように与える(以下ConventionalPML).</p>
+    <p>
+        \(
+        R(i \triangle d) = R_{max} ( \frac{i \triangle d}{N \triangle d})^{m}
+        \)
+    </p>
+    <p>ただし, \(i\triangle d\):interfaceからの距離, \(N\triangle d\):PML境界層厚さ, \(R_{max}\):Rの最大値, \(m\):\(R\)の分布性状を決定する定数.</p>
+    <p>参考文献での実装では以下のようになる</p>
+    <p>
+        \(
+        E_x(l) = E_{max} (\frac{N_{pml} - l +1}{N_{pml}} )^{m_{pml}}
+        \)
+    </p>
+    <p>
+        \(
+        PML_a(l) = \frac{1.0 - E_x(l)}{1.0 + E_x(l)}
+        \)
+    </p>
+    <p>
+        \(
+        PML_b(l) = \frac{c_0}{Z_0} \frac{\triangle t}{\triangle h} \frac{1}{1.0 + E_x(l)}
+        \)
+    </p>
+    <p>
+        \(
+        PML_c(l) = \kappa \frac{ \triangle t}{ \triangle h} \frac{1}{1.0 + E_x(l)}
+        \)
+    </p>
+
+    <p>PML境界内部での圧力・速度の更新</p>
+    <p>
+        \(
+        V^{n+1}_x(i,j,k) = PML_a(l) V^n_x(i,j,k) - PML_b(l) ( P(i+1,j,k) - P(i,j,k))
+        \)
+    </p>
+    <p>
+        \(
+        P_x(i,j,k) = PML_a(l) P_x(i,j,k) - PML_c(l) ( V_x(i,j,k) - V_x(i-1,j,k))
+        \)
+    </p>
+    <p>ここで\(l\):境界(interface)からの距離インデックスをあらわす.</p>
+    <p>PML境界層ではないAIR層内では以下の式である．</p>
+    <p>
+        \(
+        V^{n+1}_x(i,j,k) = V^n_x(i,j,k) - \frac{c_0}{Z_0} \frac{\triangle t}{\triangle h} ( P(i+1,j,k) - P(i,j,k))
+        \)
+    </p>
+    <p>
+        \(
+        P_x(i,j,k) =  P_x(i,j,k) - \kappa \frac{ \triangle t}{ \triangle h}  ( V_x(i,j,k) - V_x(i-1,j,k) )
+        \)
+    </p>
+    <h2 id="#2">更新式の実装方法(Python)</h2>
+
+    <h2>速度場の更新</h2>
+    <p>速度場の更新では，PML層とAIR層に分けて方程式が異なる.図にPML2層の場合の模式図を示す.速度値をPMLで更新するノードは最外周境界ノードは含まない.</p>
+    <p>つまり，\(x\)方向速度\(Vx\)のPMLでの更新は，\(Vx(1,j), Vx(2,j), Vx(4,j), Vx(5,j)\)で行う．</p>
+    <p>同様に，\(y\)方向速度\(Vx\)のPMLでの更新は，\(Vy(i,1), Vy(i,2), Vy(i,4), Vy(i,5)\)で行う．</p>
+    <p>参考に\(AIR-DOMAIN\)での更新式は以下のようになる.</p>
+    <p>
+        \(
+        \begin{cases}
+            V^{n+1}_x(i,j)=V^{n}_x(i,j) - \frac{\triangle t}{\rho \triangle x} (P^n(i,j)-P^n(i-1,j)) \quad (i \neq PML Node) 
+            \\
+            V^{n+1}_y(i,j)=V^{n}_y(i,j) - \frac{\triangle t}{\rho \triangle y} (P^n(i,j)-P^n(i,j-1)) \quad (j \neq PML Node) 
+        \end{cases} 
+         \tag{}
+        \)
+    </p>
+    <p>\(PML-DOMAIN\)での更新式は以下のようになる.</p>
+    <p>
+        \(
+        \begin{cases}
+            V^{n+1}_x(i,j)= PML_a(l) * V^{n}_x(i,j) - PML_b(l) * \frac{\triangle t}{\rho \triangle x} (P^n(i,j)-P^n(i-1,j)) \quad (i = PML Node) 
+        \\
+            V^{n+1}_y(i,j)= PML_a(l) * V^{n}_y(i,j) - PML_b(l) * \frac{\triangle t}{\rho \triangle x} (P^n(i,j)-P^n(i,j-1)) \quad (j = PML Node)
+        \end{cases} 
+        \tag{}
+        \)   
+    </p>
+    <h2>圧力場の更新</h2>
+    <p>AIR-DOMAINでの更新式</p>
+    <p>\( 
+        \begin{cases}
+        P^{n+1}_x(i,j) = P^{n}_x(i,j) - \kappa \frac{\triangle t}{\triangle x} ( V_x(i+1,j) - V_x(i,j))
+        \\
+        P^{n+1}_y(i,j) = P^{n}_y(i,j) - \kappa \frac{\triangle t}{\triangle x} ( V_y(i,j+1) - V_y(i,j))
+        \end{cases} \tag{} 
+    \)</p>
+
+    <p>PML-DOMAINでの更新式</p>
+    <p>\( 
+        \begin{cases}
+        P^{n+1}_x(i,j) = PML_a(l) * P^{n}_x(i,j) - PML_b(l) * \rho c ( V_x(i+1,j) - V_x(i,j))
+        \\
+        P^{n+1}_y(i,j) = PML_a(l) *  P^{n}_y(i,j) - PML_b(l) * \rho c ( V_y(i,j+1) - V_y(i,j))
+        \end{cases} \tag{} 
+    \)</p>
+    <p>ここでPMLの係数は,AIR領域とPML領域との境界面(点)からの距離で表される.※\(PML_c\)の排除.</p>
+    <p>
+        \(
+        \begin{cases}
+        E(l) = E_{max} (\frac{N_{pml} - l +1}{N_{pml}} )^{m_{pml}}
+        \\
+        PML_a(l) = \frac{1.0-E(l)}{1.0+E(l)}
+        \\
+        PML_b(l) = \frac{1}{1.0+E(l)}
+        \\
+        \end{cases} \tag{} 
+        \)
+    </p>
+    <h2>Pythonでの記述</h2>
+    <p>Python(Numpy　ndarry)を用いて実現する場合のインデックスの指定方法について述べる. Ndarrayのインデックス記法は以下のようになる.</p>
+    <p>(注意) 配列番号iは\({i:0,1,...I-1}\)である. この時, i=0からi=3までの4つのデータを取り出したい場合には以下のように記述する.</p>
+    <pre>
+    In[4]:      I=5
+    In[5]:      L =range(I)
+    Out[6]:     [0, 1, 2, 3, 4]
+
+    In[7]:      L[0:I]
+    Out[7]:     [0, 1, 2, 3, 4]
+
+    In[8]:      L[0:4]
+    Out[8]:     [0, 1, 2, 3]
+
+    In[9]:      i1=0
+    In[10]:     i2=3
+
+    In[12]:     L[i1:i2+1]  <- 末尾は+1が必要
+    Out[12]:    [0, 1, 2, 3]
+
+    In[14]:     L[i1:i2]
+    Out[14]:    [0, 1, 2]
+    </pre>
+    <h2>PML領域内のノードの抽出方法</h2>
+    <p>速度場の更新では，PML層とAIR層に分けて方程式が異なる.図にPML2層の場合の模式図を示す.速度値をPMLで更新するノードは最外周境界ノードは含まない.</p>
+    <p>つまり，\(x\)方向速度\(Vx\)のPMLでの更新は，\(Vx(1,j), Vx(2,j), Vx(4,j), Vx(5,j)\)で行う．</p>
+    <p>同様に，\(y\)方向速度\(Vx\)のPMLでの更新は，\(Vy(i,1), Vy(i,2), Vy(i,4), Vy(i,5)\)で行う．</p>
+    <div class="StaggeredGridJS" I="6" J="6" pml=2 w=500 h=500></div>
+    <p>図. スタッガード格子(PML2層)</p>
+    <p>\(N_{pml}=2\)の場合 \(V_x\)の更新式は以下のようになる．\(P\)と\(V_x\)との配列サイズが異なることから\(P[i,j]\)へのアクセスインデックスは-1する必要がある.</p>
+    <p>\( 
+        \begin{cases}
+        I=6+1=7 \\
+        i = [1,2,4,5]; iv=i; ip=i;\\
+        i = [1,2,-3,-2]; iv=i; ip=i+1;(マイナス記法の場合)
+        \\
+        V^{n+1}_x(i,j)= PML_a(l) * V^{n}_x(i,j) - PML_b(l) * \frac{\triangle t}{\rho \triangle x} (P^n(i,j)-P^n(i-1,j))
+        \\
+        Vx2[iv,:]= PML_a(i,j) * Vx1[iv,:] - PML_b(i,j) * \frac{\triangle t}{\rho \triangle x} (P1[ip,:]-P1[ip-1,:])
+        \end{cases} \tag{} 
+    \)</p>
+    <p>\( 
+        \begin{cases}
+        J=6+1=7 \\
+        j = [1,2,4,5]; jv=i; jp=i;\\
+        j = [1,2,-3,-2]; jv=i; jp=i+1;(マイナス記法の場合)
+        \\
+        V^{n+1}_y(i,j)= PML_a(l) * V^{n}_y(i,j) - PML_b(l) * \frac{\triangle t}{\rho \triangle y} (P^n(i,j)-P^n(i,j-1))
+        \\
+        Vy2[jv,:]= PML_a(i,j) * Vy1[jv,:] - PML_b(i,j) * \frac{\triangle t}{\rho \triangle y} (P1[:,jp]-P1[:,jp-1])
+        \end{cases} \tag{} 
+    \)</p>
+    <p>\( 
+        \begin{cases}
+        I=6 \\
+        i = [0,1,4,5]; ip=i; iv=i;\\
+        i = [0,1,-2,-1]; ip=i; iv=i-1;(マイナス記法の場合)
+        \\
+        P^{n+1}_x(i,j) = PML_a(l) * P^{n}_x(i,j) - PML_b(l) * \rho c ( V_x(i+1,j) - V_x(i,j))
+        \\
+        P2x[i,j] = PML_a(i,j) *  P1x[i,j] - PML_b(i,j) * \rho c ( Vx2[i+1,j] - Vx2[i,j])
+        \end{cases} \tag{} 
+        \)
+    </p>
+    <p>\( 
+        \begin{cases}
+        J=6 \\
+        j = [0,1,4,5]; jp=j; jv=j;\\
+        j = [0,1,-2,-1]; jp=j; jv=j-1;(マイナス記法の場合)
+        \\
+        P^{n+1}_y(i,j) = PML_a(l) * P^{n}_y(i,j) - PML_b(l) * \rho c ( V_y(i,j) - V_y(i,j+1))
+        \\
+        P2y[i,j] = PML_a(i,j) *  P1y[i,j] - PML_b(i,j) * \rho c ( Vy2[i,j+1] - Vy2[i,j])
+        \end{cases} \tag{} 
+        \)
+    </p>
+
+
+    <p>続いて\(N_{pml}=m\)として一般化して考える.</p>
+
+
+    <p>\( 
+        \begin{cases}
+        I=6+1=7 \\
+        i = [1,2,4,5] = np.r\_[range(1,Np+1), range(I-Np-1, I-1)]; iv=i; ip=i;\\
+        i = [1,2,-3,-2]=np.r\_[range(1, Np+1), range(-(Np+1), (-2)+1)] ; iv=i; ip=i+1;
+        \\
+        V^{n+1}_x(i,j)= PML_a(l) * V^{n}_x(i,j) - PML_b(l) * \frac{\triangle t}{\rho \triangle x} (P^n(i,j)-P^n(i-1,j))
+        \\
+        Vx2[iv,:]= PML_a(i,j) * Vx1[iv,:] - PML_b(i,j) * \frac{\triangle t}{\rho \triangle x} (P1[ip,:]-P1[ip-1,:])
+        \end{cases} \tag{} 
+    \)</p>
+    <p>\( 
+        \begin{cases}
+        J=6+1=7 \\
+        j = [1,2,4,5] = np.r\_[range(1,Np+1), range(J-Np-1, J-1)]; jv=i; jp=i;\\
+        j = [1,2,-3,-2]=np.r\_[range(1, Np+1), range(-(Np+1), (-2)+1)]; jv=i; jp=i+1;(マイナス記法の場合)
+        \\
+        V^{n+1}_y(i,j)= PML_a(l) * V^{n}_y(i,j) - PML_b(l) * \frac{\triangle t}{\rho \triangle y} (P^n(i,j)-P^n(i,j-1))
+        \\
+        Vy2[jv,:]= PML_a(i,j) * Vy1[jv,:] - PML_b(i,j) * \frac{\triangle t}{\rho \triangle y} (P1[:,jp]-P1[:,jp-1])
+        \end{cases} \tag{} 
+    \)</p>
+    <p>\( 
+        \begin{cases}
+        I=6 \\
+        i = [0,1,4,5]=np.r\_[range(0,Np), range(I-Np, I)] ; ip=i; iv=i;\\
+        i = [0,1,-2,-1]=np.r\_[range(0,Np), range(-Np, (-1)+1)] ; ip=i; iv=i-1;(マイナス記法の場合)
+        \\
+        P^{n+1}_x(i,j) = PML_a(l) * P^{n}_x(i,j) - PML_b(l) * \rho c ( V_x(i+1,j) - V_x(i,j))
+        \\
+        P2x[i,j] = PML_a(i,j) *  P1x[i,j] - PML_b(i,j) * \rho c ( Vx2[i+1,j] - Vx2[i,j])
+        \end{cases} \tag{} 
+        \)
+    </p>
+    <p>\( 
+        \begin{cases}
+        J=6 \\
+        j = [0,1,4,5]=np.r\_[range(0,Np), range(J-Np, J)] ; jp=j; jv=j;\\
+        j = [0,1,-2,-1]=np.r\_[range(0,Np), range(-Np, (-1)+1)]; jp=j; jv=j-1;(マイナス記法の場合)
+        \\
+        P^{n+1}_y(i,j) = PML_a(l) * P^{n}_y(i,j) - PML_b(l) * \rho c ( V_y(i,j) - V_y(i,j+1))
+        \\
+        P2y[i,j] = PML_a(i,j) *  P1y[i,j] - PML_b(i,j) * \rho c ( Vy2[i,j+1] - Vy2[i,j])
+        \end{cases} \tag{} 
+        \)
+    </p>
+    <p>上式内にPythonコードでのインデックス指定記法も含めた．マイナス記法のほうがrange()生成時に要素数等を必要とせず，理解も良い.</p>
+</body>
+
+</html>
